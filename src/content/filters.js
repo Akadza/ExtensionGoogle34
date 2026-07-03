@@ -2,11 +2,12 @@
   const namespace = window.R34VF || (window.R34VF = {});
 
   function apply(settings) {
-    const root = namespace.dom.getPostListRoot();
-    const cards = namespace.dom.findPostCards(root);
+    const gallery = namespace.dom.getGalleryRoot();
+    const cards = gallery ? namespace.dom.findPostCards(gallery) : [];
 
-    if (!settings.enabled) {
+    if (!settings.filterEnabled) {
       clear(cards);
+      updateStats(0, cards.length);
       return {
         hidden: 0,
         total: cards.length
@@ -14,15 +15,17 @@
     }
 
     const blacklist = parseBlacklist(settings.blacklistTags);
+    const selectedTags = namespace.settings.normalizeTagList(settings.selectedTags);
     const minScore = normalizeOptionalNumber(settings.minScore);
     const minViews = normalizeOptionalNumber(settings.minViews);
     let hidden = 0;
 
     for (const card of cards) {
       const meta = namespace.dom.getPostMeta(card);
-      const tags = extractTags(meta.rawText);
+      const tags = meta.tags;
 
       const shouldHide = shouldHideByMediaType(meta.mediaType, settings.mediaType)
+        || doesNotMatchSelectedTags(tags, selectedTags)
         || hasBlacklistedTag(tags, blacklist)
         || shouldHideForNumber(meta.score, minScore)
         || shouldHideForNumber(meta.views, minViews)
@@ -49,7 +52,6 @@
       : Array.from(document.querySelectorAll(".r34vf-hidden"));
 
     nodes.forEach((node) => node.classList.remove("r34vf-hidden"));
-    updateStats(0, nodes.length);
   }
 
   function updateStats(hidden, total) {
@@ -63,9 +65,16 @@
     return cardMediaType !== selectedMediaType;
   }
 
+  function doesNotMatchSelectedTags(tags, selectedTags) {
+    if (!selectedTags.length) return false;
+
+    const tagSet = new Set(tags);
+    return selectedTags.some((selectedTag) => !tagSet.has(selectedTag));
+  }
+
   function parseBlacklist(value) {
     return String(value || "")
-      .split(/[\n,]+/)
+      .split(/[,\n]+/)
       .map((tag) => normalizeTag(tag))
       .filter(Boolean);
   }
@@ -75,16 +84,6 @@
       .trim()
       .toLowerCase()
       .replace(/^tag:/, "");
-  }
-
-  function extractTags(rawText) {
-    return rawText
-      .replace(/%20/g, " ")
-      .replace(/\+/g, " ")
-      .replace(/[()[\]{}"'.,;:!?<>]/g, " ")
-      .split(/\s+/)
-      .map((tag) => normalizeTag(tag))
-      .filter(Boolean);
   }
 
   function hasBlacklistedTag(tags, blacklist) {
