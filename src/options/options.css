@@ -8,13 +8,13 @@
 
 body {
   margin: 0;
-  background: #101014;
-  color: #e6e6ee;
+  background: #0b0f14;
+  color: #edf3fb;
   font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .page {
-  width: min(820px, calc(100vw - 32px));
+  width: min(860px, calc(100vw - 32px));
   margin: 0 auto;
   padding: 24px 0 36px;
 }
@@ -45,7 +45,7 @@ h2 {
 
 .header p,
 .hint {
-  color: #a9a9b8;
+  color: #96a6b8;
 }
 
 .status {
@@ -53,18 +53,24 @@ h2 {
   align-items: center;
   min-height: 28px;
   padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(224, 236, 255, 0.12);
   border-radius: 999px;
-  color: #a9a9b8;
+  color: #96a6b8;
   white-space: nowrap;
 }
 
 .section {
-  background: #181820;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111821;
+  border: 1px solid rgba(224, 236, 255, 0.12);
   border-radius: 16px;
   padding: 18px;
   margin-bottom: 16px;
+}
+
+.two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .checkbox-row {
@@ -72,6 +78,10 @@ h2 {
   align-items: center;
   gap: 10px;
   margin: 12px 0;
+}
+
+input[type="checkbox"] {
+  accent-color: #06b6d4;
 }
 
 .range-row {
@@ -83,7 +93,7 @@ h2 {
 }
 
 .range-row strong {
-  color: #a9a9b8;
+  color: #96a6b8;
   font-weight: 600;
   text-align: right;
 }
@@ -96,14 +106,16 @@ h2 {
 .field-row span {
   display: block;
   margin-bottom: 6px;
+  color: #96a6b8;
 }
 
 input[type="number"],
+select,
 textarea {
   width: 100%;
-  background: #20202a;
-  color: #e6e6ee;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #17212c;
+  color: #edf3fb;
+  border: 1px solid rgba(224, 236, 255, 0.16);
   border-radius: 10px;
   padding: 10px;
 }
@@ -126,9 +138,9 @@ button {
 }
 
 button.secondary {
-  background: #2a2a36;
-  color: #e6e6ee;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #17212c;
+  color: #edf3fb;
+  border: 1px solid rgba(224, 236, 255, 0.14);
 }
 
 .actions {
@@ -137,5 +149,16 @@ button.secondary {
 }
 
 code {
-  color: #9ecbff;
+  color: #06b6d4;
+}
+
+@media (max-width: 720px) {
+  .two-columns,
+  .range-row {
+    grid-template-columns: 1fr;
+  }
+
+  .range-row strong {
+    text-align: left;
+  }
 }
