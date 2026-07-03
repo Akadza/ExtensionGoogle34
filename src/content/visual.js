@@ -3,16 +3,20 @@
 
   const ROOT_CLASSES = [
     "r34vf-enabled",
-    "r34vf-compact",
-    "r34vf-hover-unblur"
+    "r34vf-shell-enabled",
+    "r34vf-hover-unblur",
+    "r34vf-layout-grid",
+    "r34vf-layout-masonry"
   ];
 
   function apply(settings) {
     const root = document.documentElement;
 
     root.classList.toggle("r34vf-enabled", settings.enabled);
-    root.classList.toggle("r34vf-compact", settings.enabled && settings.compact);
+    root.classList.toggle("r34vf-shell-enabled", settings.enabled && settings.showShell);
     root.classList.toggle("r34vf-hover-unblur", settings.enabled && settings.hoverUnblur);
+    root.classList.toggle("r34vf-layout-grid", settings.enabled && settings.layoutMode === "grid");
+    root.classList.toggle("r34vf-layout-masonry", settings.enabled && settings.layoutMode === "masonry");
 
     root.style.setProperty("--r34vf-brightness", String(settings.brightness));
     root.style.setProperty("--r34vf-contrast", String(settings.contrast));
@@ -32,7 +36,8 @@
       node.classList.remove("r34vf-hidden");
     });
 
-    namespace.badge?.remove();
+    namespace.ui?.unmount();
+    namespace.preview?.stop();
   }
 
   namespace.visual = {
