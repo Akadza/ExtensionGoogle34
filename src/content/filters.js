@@ -7,7 +7,6 @@
 
     if (!settings.enabled) {
       clear(cards);
-      namespace.badge?.remove();
       return {
         hidden: 0,
         total: cards.length
@@ -15,16 +14,19 @@
     }
 
     const blacklist = parseBlacklist(settings.blacklistTags);
-    const minScore = normalizeMinScore(settings.minScore);
+    const minScore = normalizeOptionalNumber(settings.minScore);
+    const minViews = normalizeOptionalNumber(settings.minViews);
     let hidden = 0;
 
     for (const card of cards) {
-      const rawText = namespace.dom.getCardText(card);
-      const tags = extractTags(rawText);
-      const score = extractScore(rawText);
+      const meta = namespace.dom.getPostMeta(card);
+      const tags = extractTags(meta.rawText);
 
-      const shouldHide = hasBlacklistedTag(tags, blacklist)
-        || shouldHideForScore(score, minScore);
+      const shouldHide = shouldHideByMediaType(meta.mediaType, settings.mediaType)
+        || hasBlacklistedTag(tags, blacklist)
+        || shouldHideForNumber(meta.score, minScore)
+        || shouldHideForNumber(meta.views, minViews)
+        || shouldHideForDate(meta.date, settings.datePeriod);
 
       card.classList.toggle("r34vf-hidden", shouldHide);
 
@@ -33,7 +35,7 @@
       }
     }
 
-    namespace.badge?.render(settings, hidden, cards.length);
+    updateStats(hidden, cards.length);
 
     return {
       hidden,
@@ -47,6 +49,18 @@
       : Array.from(document.querySelectorAll(".r34vf-hidden"));
 
     nodes.forEach((node) => node.classList.remove("r34vf-hidden"));
+    updateStats(0, nodes.length);
+  }
+
+  function updateStats(hidden, total) {
+    const shell = document.getElementById("r34vf-shell");
+    const target = shell?.querySelector("[data-r34vf-stats]");
+    if (target) target.textContent = `${hidden}/${total} hidden`;
+  }
+
+  function shouldHideByMediaType(cardMediaType, selectedMediaType) {
+    if (selectedMediaType === "all") return false;
+    return cardMediaType !== selectedMediaType;
   }
 
   function parseBlacklist(value) {
@@ -73,25 +87,6 @@
       .filter(Boolean);
   }
 
-  function extractScore(rawText) {
-    const decodedText = rawText.replace(/%3a/gi, ":");
-    const patterns = [
-      /score[:=\s]+(-?\d+)/i,
-      /score=(-?\d+)/i,
-      /score:(-?\d+)/i
-    ];
-
-    for (const pattern of patterns) {
-      const match = decodedText.match(pattern);
-      if (match) {
-        const value = Number(match[1]);
-        return Number.isFinite(value) ? value : null;
-      }
-    }
-
-    return null;
-  }
-
   function hasBlacklistedTag(tags, blacklist) {
     if (blacklist.length === 0) return false;
 
@@ -107,16 +102,35 @@
     });
   }
 
-  function shouldHideForScore(score, minScore) {
-    if (minScore === null || score === null) return false;
-    return score < minScore;
+  function shouldHideForNumber(actualValue, minValue) {
+    if (minValue === null || actualValue === null) return false;
+    return actualValue < minValue;
   }
 
-  function normalizeMinScore(value) {
+  function shouldHideForDate(dateValue, period) {
+    if (!dateValue || period === "any") return false;
+
+    const date = new Date(`${dateValue}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return false;
+
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+
+    if (period === "week") {
+      start.setDate(start.getDate() - 7);
+    } else if (period === "month") {
+      start.setMonth(start.getMonth() - 1);
+    }
+
+    return date < start;
+  }
+
+  function normalizeOptionalNumber(value) {
     if (value === "" || value === null || value === undefined) return null;
 
-    const score = Number(value);
-    return Number.isFinite(score) ? score : null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
   }
 
   function wildcardToRegex(pattern) {
