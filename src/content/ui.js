@@ -101,13 +101,18 @@
         </section>
 
         <section class="r34vf-panel">
-          <h2>Tag search</h2>
+          <h2>Tags</h2>
           <label class="r34vf-field">
-            <span>Find tag</span>
-            <input type="search" data-r34vf-action="tag-search" placeholder="type tag name">
+            <span>Include tags</span>
+            <input type="search" data-r34vf-action="tag-search" placeholder="type tag name" autocomplete="off">
           </label>
           <div class="r34vf-tag-suggestions" data-r34vf-tag-suggestions></div>
           <div class="r34vf-tag-chips" data-r34vf-selected-tags></div>
+
+          <label class="r34vf-field r34vf-field-spaced">
+            <span>Blacklist tags</span>
+            <textarea data-r34vf-setting="blacklistTags" placeholder="tag_one&#10;tag_two&#10;prefix_*"></textarea>
+          </label>
         </section>
 
         <section class="r34vf-panel">
@@ -129,11 +134,7 @@
               <option value="month">This month</option>
             </select>
           </label>
-          <label class="r34vf-field">
-            <span>Blacklist tags</span>
-            <textarea data-r34vf-setting="blacklistTags" placeholder="tag_one&#10;tag_two&#10;prefix_*"></textarea>
-          </label>
-          <p class="r34vf-help">Filters affect only loaded cards. More exact date/views filters need metadata fetching.</p>
+          <p class="r34vf-help">Date/views filters need metadata from loaded cards or a later metadata-fetch layer.</p>
         </section>
       </aside>
     `;
@@ -167,24 +168,28 @@
   function handleClick(event) {
     const toggleButton = event.target.closest("[data-r34vf-action='toggle-sidebar']");
     if (toggleButton) {
+      event.preventDefault();
       updateSetting("sidebarCollapsed", !state.settings.sidebarCollapsed);
       return;
     }
 
     const segmentButton = event.target.closest("[data-r34vf-segment]");
     if (segmentButton) {
+      event.preventDefault();
       updateSetting(segmentButton.dataset.r34vfSegment, segmentButton.dataset.r34vfValue);
       return;
     }
 
     const suggestionButton = event.target.closest("[data-r34vf-add-tag]");
     if (suggestionButton) {
+      event.preventDefault();
       addSelectedTag(suggestionButton.dataset.r34vfAddTag);
       return;
     }
 
     const removeButton = event.target.closest("[data-r34vf-remove-tag]");
     if (removeButton) {
+      event.preventDefault();
       removeSelectedTag(removeButton.dataset.r34vfRemoveTag);
     }
   }
@@ -199,29 +204,30 @@
   }
 
   function addSelectedTag(tag) {
-    const selectedTags = namespace.settings.normalizeTagList([
-      ...state.settings.selectedTags,
-      tag
-    ]);
-
+    const selectedTags = namespace.settings.normalizeTagList([...state.settings.selectedTags, tag]);
     updateSetting("selectedTags", selectedTags);
+    focusTagInput();
   }
 
   function removeSelectedTag(tag) {
     const selectedTags = state.settings.selectedTags.filter((item) => item !== tag);
     updateSetting("selectedTags", selectedTags);
+    focusTagInput();
+  }
+
+  function focusTagInput() {
+    const input = document.querySelector("[data-r34vf-action='tag-search']");
+    input?.focus();
   }
 
   function updateSetting(key, value) {
-    const nextSettings = namespace.settings.normalizeSettings({
-      ...state.settings,
-      [key]: value
-    });
+    const nextSettings = namespace.settings.normalizeSettings({ ...state.settings, [key]: value });
 
     state.settings = nextSettings;
-    syncControls(document.getElementById(SHELL_ID), nextSettings);
-    renderSelectedTags(document.getElementById(SHELL_ID), nextSettings.selectedTags);
-    renderTagSuggestions(document.getElementById(SHELL_ID), state.tagQuery);
+    const shell = document.getElementById(SHELL_ID);
+    syncControls(shell, nextSettings);
+    renderSelectedTags(shell, nextSettings.selectedTags);
+    renderTagSuggestions(shell, state.tagQuery);
 
     if (typeof state.onChange === "function") {
       state.onChange(nextSettings);
@@ -264,6 +270,11 @@
       }
     });
 
+    const tagInput = shell.querySelector("[data-r34vf-action='tag-search']");
+    if (tagInput && document.activeElement !== tagInput) {
+      tagInput.value = state.tagQuery;
+    }
+
     shell.querySelectorAll("[data-r34vf-segment]").forEach((button) => {
       const key = button.dataset.r34vfSegment;
       button.classList.toggle("is-active", settings[key] === button.dataset.r34vfValue);
@@ -280,8 +291,8 @@
     }
 
     target.innerHTML = selectedTags.map((tag) => `
-      <button type="button" class="r34vf-chip" data-r34vf-remove-tag="${escapeAttribute(tag)}">
-        ${escapeHtml(tag)} <span>×</span>
+      <button type="button" class="r34vf-chip" data-r34vf-remove-tag="${escapeAttribute(tag)}" title="Remove ${escapeAttribute(tag)}">
+        ${escapeHtml(tag)} <span aria-hidden="true">×</span>
       </button>
     `).join("");
   }
@@ -290,14 +301,16 @@
     const target = shell?.querySelector("[data-r34vf-tag-suggestions]");
     if (!target) return;
 
-    const suggestions = namespace.dom.collectAvailableTags(query)
-      .filter((tag) => !state.settings.selectedTags.includes(tag))
-      .slice(0, 10);
+    const normalizedQuery = query.trim();
 
-    if (!query.trim()) {
+    if (!normalizedQuery) {
       target.innerHTML = `<span class="r34vf-empty">Start typing to search tags</span>`;
       return;
     }
+
+    const suggestions = namespace.dom.collectAvailableTags(normalizedQuery)
+      .filter((tag) => !state.settings.selectedTags.includes(tag))
+      .slice(0, 12);
 
     if (!suggestions.length) {
       target.innerHTML = `<span class="r34vf-empty">No matches</span>`;
@@ -322,8 +335,5 @@
     return escapeHtml(value);
   }
 
-  namespace.ui = {
-    mount,
-    unmount
-  };
+  namespace.ui = { mount, unmount };
 })();
