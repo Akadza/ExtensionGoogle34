@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R34 Visual Filter</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <div>
+        <h1>R34 Visual Filter</h1>
+        <p>Локальные визуальные настройки и фильтры для страницы выдачи.</p>
+      </div>
+      <span id="status" class="status">Готово</span>
+    </header>
+
+    <section class="section">
+      <h2>Основное</h2>
+
+      <label class="checkbox-row">
+        <input id="enabled" type="checkbox">
+        <span>Включить расширение</span>
+      </label>
+
+      <label class="checkbox-row">
+        <input id="compact" type="checkbox">
+        <span>Компактная сетка</span>
+      </label>
+
+      <label class="checkbox-row">
+        <input id="hoverUnblur" type="checkbox">
+        <span>Убирать blur при наведении</span>
+      </label>
+
+      <label class="checkbox-row">
+        <input id="showBadge" type="checkbox">
+        <span>Показывать счетчик скрытых карточек</span>
+      </label>
+    </section>
+
+    <section class="section">
+      <h2>Визуальные фильтры</h2>
+
+      <label class="range-row">
+        <span>Brightness</span>
+        <strong id="brightnessValue"></strong>
+        <input id="brightness" type="range" min="0.3" max="1.8" step="0.05">
+      </label>
+
+      <label class="range-row">
+        <span>Contrast</span>
+        <strong id="contrastValue"></strong>
+        <input id="contrast" type="range" min="0.3" max="2" step="0.05">
+      </label>
+
+      <label class="range-row">
+        <span>Saturation</span>
+        <strong id="saturationValue"></strong>
+        <input id="saturation" type="range" min="0" max="2" step="0.05">
+      </label>
+
+      <label class="range-row">
+        <span>Grayscale</span>
+        <strong id="grayscaleValue"></strong>
+        <input id="grayscale" type="range" min="0" max="1" step="0.05">
+      </label>
+
+      <label class="range-row">
+        <span>Blur</span>
+        <strong id="blurValue"></strong>
+        <input id="blur" type="range" min="0" max="20" step="1">
+      </label>
+    </section>
+
+    <section class="section">
+      <h2>Фильтрация</h2>
+
+      <label class="field-row">
+        <span>Минимальный score</span>
+        <input id="minScore" type="number" placeholder="Например: 10">
+      </label>
+
+      <label class="field-row">
+        <span>Blacklist-теги</span>
+        <textarea id="blacklistTags" placeholder="Один тег на строку или через запятую&#10;sky_children_of_the_light&#10;bad_tag&#10;prefix_*"></textarea>
+      </label>
+
+      <p class="hint">
+        Поддерживается wildcard через <code>*</code>, например <code>prefix_*</code>. Фильтрация выполняется только локально в браузере.
+      </p>
+    </section>
+
+    <footer class="actions">
+      <button id="reset" type="button" class="secondary">Сбросить</button>
+    </footer>
+  </main>
+
+  <script src="../shared/settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
