@@ -44,6 +44,8 @@
 
       if (element.type === "checkbox") {
         element.checked = Boolean(settings[id]);
+      } else if (Array.isArray(settings[id])) {
+        element.value = settings[id].join("\n");
       } else {
         element.value = settings[id] ?? "";
       }
