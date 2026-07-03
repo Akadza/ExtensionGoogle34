@@ -6,7 +6,11 @@
     ".thumb[id^='p']",
     "#post-list span.thumb",
     "#post-list .thumb",
-    "#post-list article"
+    "#post-list article",
+    "#post-list a[href*='page=post'][href*='id=']",
+    "#content a[href*='page=post'][href*='id=']",
+    ".image-list a[href*='page=post'][href*='id=']",
+    "a[href*='page=post'][href*='id=']:has(img)"
   ];
 
   function getNativeRoot() {
@@ -25,11 +29,21 @@
 
     for (const selector of POST_CARD_SELECTORS) {
       root.querySelectorAll(selector).forEach((node) => {
-        if (isPostCard(node)) result.add(node);
+        const card = resolvePostCard(node);
+        if (card && isPostCard(card)) result.add(card);
       });
     }
 
     return Array.from(result);
+  }
+
+  function resolvePostCard(node) {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
+
+    const thumb = node.closest?.("span.thumb, .thumb, article");
+    if (thumb && thumb.querySelector("img") && getPostLink(thumb)) return thumb;
+
+    return node;
   }
 
   function findAllPostCards() {
@@ -44,6 +58,10 @@
   }
 
   function getPostLink(card) {
+    if (card.matches?.("a[href*='page=post'][href*='id='], a[href*='id=']")) {
+      return card;
+    }
+
     return card.querySelector("a[href*='page=post'][href*='id=']")
       || card.querySelector("a[href*='id=']")
       || card.querySelector("a[href]");
