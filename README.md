@@ -1,17 +1,19 @@
 # R34 Visual Filter
 
-Chrome/Chromium extension for local visual changes, modern layouts and simple client-side filtering on `rule34.xxx`.
+Chrome/Chromium extension for local layout changes and client-side filtering on `rule34.xxx`.
 
 ## Current features
 
-- Fixed top shell and left filter panel.
+- Fixed top shell and page-scrolling left filter panel.
+- Native site header/sidebar content is hidden after cards are moved into an isolated extension gallery.
 - Two layouts: uniform grid and Pinterest-like masonry.
 - Media filter: all posts, images, videos.
-- Visual CSS filters: brightness, contrast, saturation, grayscale, blur.
+- Filter toggle affects only filtering; it does not disable the visual shell.
+- Tag search in the left panel with clickable suggestions and selected tag chips.
 - Blacklist by tags, including wildcard patterns like `prefix_*`.
 - Minimal score filter when score metadata exists in loaded cards.
 - Prepared settings for views/date filters; they need reliable metadata from DOM or an additional fetch layer.
-- Hover video preview: fetches the post page lazily, extracts a video source, caches it, and plays a muted preview only while hovering.
+- Hover video preview fetches the post page lazily, extracts a video source, caches it, and aborts slow requests.
 - Settings are saved through `chrome.storage.sync`.
 
 ## Project structure
@@ -59,6 +61,6 @@ The current filters are local: they operate on cards already loaded into the pag
 
 Option 3 is possible, but it must be rate-limited and cached because fetching metadata for every card can slow the site down.
 
-## Stability notes
+## Video preview limits
 
-The content script uses a debounced `MutationObserver`. It avoids broad selectors for native site controls and styles only the extension shell plus detected post cards.
+The extension cannot invent a lower-quality video stream if the target page exposes only the original file. Current optimization is conservative: delayed hover start, request timeout, abort on mouse leave, cache, and no bulk preloading.
