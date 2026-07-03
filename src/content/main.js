@@ -1,13 +1,14 @@
 (() => {
   const namespace = window.R34VF || (window.R34VF = {});
 
-  const APPLY_DEBOUNCE_MS = 120;
+  const APPLY_DEBOUNCE_MS = 90;
 
   const state = {
     settings: null,
     observer: null,
     applyTimerId: null,
-    applying: false
+    applying: false,
+    storageListenerReady: false
   };
 
   if (document.readyState === "loading") {
@@ -19,6 +20,7 @@
   async function start() {
     try {
       state.settings = await namespace.settings.loadSettings();
+      namespace.preview.init();
       applyAll();
       setupObserver();
       setupStorageListener();
@@ -28,6 +30,8 @@
   }
 
   function setupStorageListener() {
+    if (state.storageListenerReady) return;
+
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName !== "sync") return;
 
@@ -42,6 +46,8 @@
       state.settings = namespace.settings.normalizeSettings(nextSettings);
       scheduleApply();
     });
+
+    state.storageListenerReady = true;
   }
 
   function setupObserver() {
@@ -89,14 +95,30 @@
     }, APPLY_DEBOUNCE_MS);
   }
 
+  function handleShellSettingsChange(nextSettings) {
+    state.settings = nextSettings;
+    scheduleApply();
+  }
+
   function applyAll() {
     if (state.applying || !state.settings) return;
 
     state.applying = true;
 
     try {
+      if (!state.settings.enabled) {
+        namespace.visual.cleanup();
+        namespace.layout.clear();
+        namespace.filters.clear();
+        namespace.preview.setEnabled(false);
+        return;
+      }
+
       namespace.visual.apply(state.settings);
+      namespace.ui.mount(state.settings, handleShellSettingsChange);
+      namespace.layout.apply(state.settings);
       namespace.filters.apply(state.settings);
+      namespace.preview.setEnabled(state.settings.previewEnabled);
     } catch (error) {
       console.error("R34 Visual Filter apply failed", error);
     } finally {
