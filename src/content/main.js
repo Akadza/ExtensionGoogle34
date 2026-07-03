@@ -8,25 +8,36 @@
     observer: null,
     applyTimerId: null,
     applying: false,
-    storageListenerReady: false
+    storageListenerReady: false,
+    domFeaturesReady: false
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
-  }
+  start();
 
   async function start() {
     try {
       state.settings = await namespace.settings.loadSettings();
-      namespace.preview.init();
-      applyAll();
-      setupObserver();
+      namespace.visual.apply(state.settings);
       setupStorageListener();
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startDomFeatures, { once: true });
+      } else {
+        startDomFeatures();
+      }
     } catch (error) {
       console.error("R34 Visual Filter failed to start", error);
     }
+  }
+
+  function startDomFeatures() {
+    if (state.domFeaturesReady) return;
+
+    namespace.preview.init();
+    applyAll();
+    setupObserver();
+
+    state.domFeaturesReady = true;
   }
 
   function setupStorageListener() {
@@ -44,6 +55,7 @@
       }
 
       state.settings = namespace.settings.normalizeSettings(nextSettings);
+      namespace.visual.apply(state.settings);
       scheduleApply();
     });
 
@@ -85,6 +97,8 @@
   }
 
   function scheduleApply() {
+    if (!state.domFeaturesReady) return;
+
     if (state.applyTimerId !== null) {
       window.clearTimeout(state.applyTimerId);
     }
@@ -97,6 +111,7 @@
 
   function handleShellSettingsChange(nextSettings) {
     state.settings = nextSettings;
+    namespace.visual.apply(state.settings);
     scheduleApply();
   }
 
