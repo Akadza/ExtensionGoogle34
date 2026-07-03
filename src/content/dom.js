@@ -17,7 +17,7 @@
     "page", "post", "posts", "comments", "comment", "forum", "wiki", "aliases", "artists",
     "tags", "pools", "my_account", "account", "help", "discord", "search", "upload", "random",
     "contact", "dmca", "about", "tos", "index", "id", "score", "rating", "artist", "copyright",
-    "character", "general", "video", "videos", "image", "images"
+    "character", "general", "video", "videos", "image", "images", "r34vf-card", "r34vf-card-video", "r34vf-card-image"
   ]);
 
   function getNativeRoot() {
@@ -108,7 +108,7 @@
     const links = Array.from(card.querySelectorAll("a"));
 
     const parts = [
-      card.className,
+      cleanClassText(card.dataset?.r34vfOriginalClass || card.className),
       card.dataset?.r34vfOriginalTitle,
       card.getAttribute("title"),
       card.getAttribute("alt"),
@@ -116,14 +116,14 @@
       card.getAttribute("data-score"),
       card.getAttribute("data-rating"),
       card.textContent,
-      img?.className,
+      cleanClassText(img?.dataset?.r34vfOriginalClass || img?.className),
       img?.dataset?.r34vfOriginalTitle,
       img?.getAttribute("title"),
       img?.getAttribute("alt"),
       img?.getAttribute("data-tags"),
       img?.getAttribute("data-score"),
       img?.dataset?.tags,
-      ...links.map((link) => link.className),
+      ...links.map((link) => cleanClassText(link.dataset?.r34vfOriginalClass || link.className)),
       ...links.map((link) => link.dataset?.r34vfOriginalTitle),
       ...links.map((link) => link.getAttribute("title")),
       ...links.map((link) => link.getAttribute("href"))
@@ -154,6 +154,11 @@
   function detectMediaType(card, rawText, url) {
     const lowerUrl = String(url || "").toLowerCase();
     const image = getCardImage(card);
+    const nativeClassText = [
+      card.dataset?.r34vfOriginalClass,
+      cleanClassText(card.className),
+      ...Array.from(card.querySelectorAll("[class]")).map((node) => cleanClassText(node.dataset?.r34vfOriginalClass || node.className))
+    ].filter(Boolean).join(" ").toLowerCase();
     const imageText = [
       image?.src,
       image?.dataset?.src,
@@ -163,13 +168,19 @@
       image?.getAttribute("title")
     ].filter(Boolean).join(" ").toLowerCase();
 
-    const hasVideoClass = card.matches(".video, .webm, .mp4, [class*='video']")
-      || Boolean(card.querySelector(".video, .webm, .mp4, video, [class*='video']"));
+    const hasNativeVideoClass = /(^|\s)(video|webm|mp4|animated)(\s|$)/i.test(nativeClassText);
     const hasDuration = /\b\d{1,2}:\d{2}\b/.test(rawText);
-    const hasVideoText = /\b(video|webm|mp4|duration|animated|animated_gif)\b/i.test(rawText);
+    const hasExplicitVideoText = /\b(webm|mp4|animated_gif|duration)\b/i.test(rawText);
     const hasVideoUrl = /\.(webm|mp4)(?:$|[?#])/i.test(lowerUrl) || /\.(webm|mp4)(?:$|[?#])/i.test(imageText);
 
-    return hasVideoClass || hasDuration || hasVideoText || hasVideoUrl ? "video" : "image";
+    return hasNativeVideoClass || hasDuration || hasExplicitVideoText || hasVideoUrl ? "video" : "image";
+  }
+
+  function cleanClassText(className) {
+    return String(className || "")
+      .split(/\s+/)
+      .filter((classToken) => classToken && !classToken.startsWith("r34vf-"))
+      .join(" ");
   }
 
   function extractTags(rawText) {
