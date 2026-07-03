@@ -2,17 +2,32 @@ html.r34vf-page-ready body > *:not(#r34vf-shell):not(#r34vf-page):not(script):no
   display: none !important;
 }
 
+html.r34vf-enabled body {
+  overflow-x: hidden !important;
+}
+
 #r34vf-page {
   min-height: 100vh !important;
+  width: auto !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
   background: var(--r34vf-bg) !important;
 }
 
 html.r34vf-shell-enabled #r34vf-page {
-  padding-top: 14px !important;
+  margin-left: var(--r34vf-sidebar-width) !important;
+  max-width: calc(100vw - var(--r34vf-sidebar-width)) !important;
+  padding-top: 16px !important;
+}
+
+html:has(#r34vf-shell.r34vf-sidebar-collapsed).r34vf-shell-enabled #r34vf-page {
+  margin-left: 0 !important;
+  max-width: 100vw !important;
 }
 
 #r34vf-gallery {
   width: 100% !important;
+  max-width: 100% !important;
   padding: 18px !important;
 }
 
@@ -25,7 +40,7 @@ html.r34vf-shell-enabled #r34vf-page {
 
 #r34vf-gallery.r34vf-masonry-root {
   display: block !important;
-  column-width: 236px !important;
+  column-width: 232px !important;
   column-gap: 16px !important;
 }
 
@@ -64,14 +79,10 @@ html.r34vf-shell-enabled #r34vf-page {
   width: 100% !important;
   max-width: none !important;
   height: auto !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
   border: 0 !important;
   transition: transform 140ms ease !important;
-}
-
-#r34vf-gallery.r34vf-grid-root .r34vf-card img {
-  aspect-ratio: 1 / 1.16 !important;
-  height: auto !important;
-  object-fit: cover !important;
 }
 
 #r34vf-gallery .r34vf-card:hover {
@@ -79,7 +90,7 @@ html.r34vf-shell-enabled #r34vf-page {
 }
 
 #r34vf-gallery .r34vf-card:hover img {
-  transform: scale(1.015) !important;
+  transform: scale(1.01) !important;
 }
 
 #r34vf-gallery .r34vf-card-video::after {
