@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "R34 Visual Filter",
-  "version": "0.2.0",
-  "description": "Visual improvements and local filters for rule34.xxx",
+  "version": "0.3.0",
+  "description": "Modern visual shell, layouts and local filters for rule34.xxx",
   "permissions": ["storage"],
   "host_permissions": [
     "https://rule34.xxx/*",
@@ -15,14 +15,19 @@
         "http://rule34.xxx/*"
       ],
       "css": [
-        "src/content/styles.css"
+        "src/content/tokens.css",
+        "src/content/shell.css",
+        "src/content/cards.css",
+        "src/content/preview.css"
       ],
       "js": [
         "src/shared/settings.js",
         "src/content/dom.js",
-        "src/content/badge.js",
+        "src/content/ui.js",
         "src/content/visual.js",
+        "src/content/layout.js",
         "src/content/filters.js",
+        "src/content/preview.js",
         "src/content/main.js"
       ],
       "run_at": "document_idle"
