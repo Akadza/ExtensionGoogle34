@@ -56,10 +56,27 @@
     card.classList.toggle("r34vf-card-image", meta.mediaType === "image");
     card.dataset.r34vfMediaType = meta.mediaType;
 
+    stripHoverTitles(card);
+
     const image = namespace.dom.getCardImage(card);
     if (image) {
       image.loading = "lazy";
       image.decoding = "async";
+    }
+  }
+
+  function stripHoverTitles(card) {
+    card.querySelectorAll("[title]").forEach((node) => {
+      if (!node.dataset.r34vfOriginalTitle) {
+        node.dataset.r34vfOriginalTitle = node.getAttribute("title") || "";
+      }
+
+      node.removeAttribute("title");
+    });
+
+    if (card.hasAttribute("title")) {
+      card.dataset.r34vfOriginalTitle = card.getAttribute("title") || "";
+      card.removeAttribute("title");
     }
   }
 
