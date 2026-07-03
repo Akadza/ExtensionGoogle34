@@ -11,7 +11,7 @@
     <header class="header">
       <div>
         <h1>R34 Visual Filter</h1>
-        <p>Локальные визуальные настройки и фильтры для страницы выдачи.</p>
+        <p>Локальная оболочка, визуальные настройки и фильтры для страницы выдачи.</p>
       </div>
       <span id="status" class="status">Готово</span>
     </header>
@@ -25,18 +25,37 @@
       </label>
 
       <label class="checkbox-row">
-        <input id="compact" type="checkbox">
-        <span>Компактная сетка</span>
+        <input id="showShell" type="checkbox">
+        <span>Показывать верхнюю и левую панель</span>
       </label>
 
       <label class="checkbox-row">
-        <input id="hoverUnblur" type="checkbox">
-        <span>Убирать blur при наведении</span>
+        <input id="sidebarCollapsed" type="checkbox">
+        <span>Свернуть левую панель по умолчанию</span>
       </label>
 
       <label class="checkbox-row">
-        <input id="showBadge" type="checkbox">
-        <span>Показывать счетчик скрытых карточек</span>
+        <input id="previewEnabled" type="checkbox">
+        <span>Включить preview видео при наведении</span>
+      </label>
+    </section>
+
+    <section class="section two-columns">
+      <label class="field-row">
+        <span>Layout</span>
+        <select id="layoutMode">
+          <option value="masonry">Pinterest masonry</option>
+          <option value="grid">Uniform grid</option>
+        </select>
+      </label>
+
+      <label class="field-row">
+        <span>Media type</span>
+        <select id="mediaType">
+          <option value="all">All</option>
+          <option value="image">Images</option>
+          <option value="video">Videos</option>
+        </select>
       </label>
     </section>
 
@@ -72,6 +91,11 @@
         <strong id="blurValue"></strong>
         <input id="blur" type="range" min="0" max="20" step="1">
       </label>
+
+      <label class="checkbox-row">
+        <input id="hoverUnblur" type="checkbox">
+        <span>Убирать blur при наведении</span>
+      </label>
     </section>
 
     <section class="section">
@@ -83,12 +107,27 @@
       </label>
 
       <label class="field-row">
+        <span>Минимум просмотров</span>
+        <input id="minViews" type="number" placeholder="Если доступно в DOM">
+      </label>
+
+      <label class="field-row">
+        <span>Период загрузки</span>
+        <select id="datePeriod">
+          <option value="any">Any time</option>
+          <option value="today">Today</option>
+          <option value="week">This week</option>
+          <option value="month">This month</option>
+        </select>
+      </label>
+
+      <label class="field-row">
         <span>Blacklist-теги</span>
-        <textarea id="blacklistTags" placeholder="Один тег на строку или через запятую&#10;sky_children_of_the_light&#10;bad_tag&#10;prefix_*"></textarea>
+        <textarea id="blacklistTags" placeholder="Один тег на строку или через запятую&#10;tag_one&#10;tag_two&#10;prefix_*"></textarea>
       </label>
 
       <p class="hint">
-        Поддерживается wildcard через <code>*</code>, например <code>prefix_*</code>. Фильтрация выполняется только локально в браузере.
+        Поддерживается wildcard через <code>*</code>. Фильтры по дате и просмотрам работают только если нужные данные доступны в карточках или позже будут добавлены через слой metadata-fetch.
       </p>
     </section>
 
