@@ -13,6 +13,13 @@
     "a[href*='page=post'][href*='id=']:has(img)"
   ];
 
+  const NON_TAG_WORDS = new Set([
+    "page", "post", "posts", "comments", "comment", "forum", "wiki", "aliases", "artists",
+    "tags", "pools", "my_account", "account", "help", "discord", "search", "upload", "random",
+    "contact", "dmca", "about", "tos", "index", "id", "score", "rating", "artist", "copyright",
+    "character", "general", "video", "videos", "image", "images"
+  ]);
+
   function getNativeRoot() {
     return document.querySelector("#post-list")
       || document.querySelector("#content")
@@ -172,14 +179,14 @@
       .replace(/[()[\]{}"'.,;!?<>]/g, " ")
       .split(/\s+/)
       .map((tag) => tag.trim().toLowerCase().replace(/^tag:/, ""))
-      .filter(Boolean);
+      .filter((tag) => Boolean(tag) && !NON_TAG_WORDS.has(tag));
   }
 
   function collectAvailableTags(query = "") {
     const normalizedQuery = String(query || "").trim().toLowerCase();
     const tags = new Map();
 
-    document.querySelectorAll("a[href*='tags='], a[href*='tag='], a[href*='page=post']").forEach((link) => {
+    document.querySelectorAll("a[href*='tags='], a[href*='tag=']").forEach((link) => {
       const linkText = String(link.textContent || "").trim();
       const title = String(link.getAttribute("title") || link.dataset?.r34vfOriginalTitle || "").trim();
       const hrefTags = extractTagsFromUrl(link.getAttribute("href") || "");
@@ -207,7 +214,7 @@
       .replace(/[^a-z0-9_:\-]+/g, "");
 
     if (!tag || tag.length < 2 || tag.length > 64) return;
-    if (["page", "post", "index", "id", "tags", "score", "rating", "artist", "copyright", "character", "general"].includes(tag)) return;
+    if (NON_TAG_WORDS.has(tag)) return;
 
     map.set(tag, true);
   }
