@@ -2,18 +2,22 @@
   const namespace = window.R34VF || (window.R34VF = {});
 
   const POST_CARD_SELECTORS = [
+    "span.thumb[id^='p']",
+    ".thumb[id^='p']",
     "#post-list span.thumb",
     "#post-list .thumb",
-    "#post-list article",
-    "span.thumb[id^='p']",
-    ".thumb[id^='p']"
+    "#post-list article"
   ];
 
-  function getPostListRoot() {
+  function getNativeRoot() {
     return document.querySelector("#post-list")
-      || document.querySelector(".image-list")
       || document.querySelector("#content")
+      || document.querySelector(".image-list")
       || document.body;
+  }
+
+  function getGalleryRoot() {
+    return document.getElementById("r34vf-gallery");
   }
 
   function findPostCards(root = document) {
@@ -30,9 +34,13 @@
     return Array.from(result);
   }
 
+  function findAllPostCards() {
+    return findPostCards(document).filter((card) => !card.closest("#r34vf-shell"));
+  }
+
   function isPostCard(node) {
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
-    if (isOwnNode(node)) return false;
+    if (node.closest?.("#r34vf-shell")) return false;
 
     const hasImage = Boolean(node.querySelector("img"));
     const hasPostLink = Boolean(getPostLink(node));
@@ -98,10 +106,7 @@
       ...links.map((link) => link.getAttribute("href"))
     ];
 
-    return parts
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
+    return parts.filter(Boolean).join(" ").toLowerCase();
   }
 
   function getPostMeta(card) {
@@ -118,20 +123,88 @@
       mediaType: detectMediaType(card, rawText, url),
       score: extractScore(rawText),
       views: extractViews(rawText),
-      date: extractDate(rawText)
+      date: extractDate(rawText),
+      tags: extractTags(rawText)
     };
   }
 
   function detectMediaType(card, rawText, url) {
     const lowerUrl = String(url || "").toLowerCase();
+    const image = getCardImage(card);
+    const imageText = [
+      image?.src,
+      image?.dataset?.src,
+      image?.getAttribute("data-original"),
+      image?.getAttribute("alt"),
+      image?.getAttribute("title")
+    ].filter(Boolean).join(" ").toLowerCase();
 
-    const hasVideoClass = card.matches(".video, .webm, .mp4")
-      || Boolean(card.querySelector(".video, .webm, .mp4, video"));
+    const hasVideoClass = card.matches(".video, .webm, .mp4, [class*='video']")
+      || Boolean(card.querySelector(".video, .webm, .mp4, video, [class*='video']"));
 
-    const hasVideoText = /\b(video|webm|mp4|duration|animated|animated_gif)\b/i.test(rawText);
-    const hasVideoUrl = /\.(webm|mp4)(?:$|[?#])/i.test(lowerUrl);
+    const hasVideoText = /\b(video|webm|mp4|duration|animated|animated_gif)\b/i.test(rawText)
+      || /\b\d{1,2}:\d{2}\b/.test(rawText);
+    const hasVideoUrl = /\.(webm|mp4)(?:$|[?#])/i.test(lowerUrl) || /\.(webm|mp4)(?:$|[?#])/i.test(imageText);
 
     return hasVideoClass || hasVideoText || hasVideoUrl ? "video" : "image";
+  }
+
+  function extractTags(rawText) {
+    return String(rawText || "")
+      .replace(/%20/g, " ")
+      .replace(/\+/g, " ")
+      .replace(/[()[\]{}"'.,;:!?<>]/g, " ")
+      .split(/\s+/)
+      .map((tag) => tag.trim().toLowerCase().replace(/^tag:/, ""))
+      .filter(Boolean);
+  }
+
+  function collectAvailableTags(query = "") {
+    const normalizedQuery = String(query || "").trim().toLowerCase();
+    const tags = new Map();
+
+    document.querySelectorAll("a[href*='tags='], a[href*='tag='], a[href*='page=post']").forEach((link) => {
+      const linkText = String(link.textContent || "").trim();
+      const title = String(link.getAttribute("title") || "").trim();
+      const hrefTags = extractTagsFromUrl(link.getAttribute("href") || "");
+
+      [...hrefTags, linkText, title].forEach((value) => addTag(tags, value));
+    });
+
+    findAllPostCards().forEach((card) => {
+      const meta = getPostMeta(card);
+      meta.tags.forEach((tag) => addTag(tags, tag));
+    });
+
+    return Array.from(tags.keys())
+      .filter((tag) => !normalizedQuery || tag.includes(normalizedQuery))
+      .filter((tag) => tag.length > 1 && !/^\d+$/.test(tag))
+      .sort((a, b) => a.localeCompare(b))
+      .slice(0, 18);
+  }
+
+  function addTag(map, value) {
+    const tag = String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^\?\s*[+-]\s*/, "")
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_:\-]+/g, "");
+
+    if (!tag || tag.length < 2 || tag.length > 64) return;
+    if (["page", "post", "index", "id", "tags", "score", "rating"].includes(tag)) return;
+
+    map.set(tag, true);
+  }
+
+  function extractTagsFromUrl(href) {
+    try {
+      const url = new URL(href, window.location.href);
+      const raw = url.searchParams.get("tags") || url.searchParams.get("tag") || "";
+      return raw.split(/\s+/).filter(Boolean);
+    } catch (_error) {
+      return [];
+    }
   }
 
   function extractScore(rawText) {
@@ -151,7 +224,7 @@
   }
 
   function extractDate(rawText) {
-    const match = rawText.match(/(?:date|created_at|posted)[:=\s]+(\d{4}-\d{2}-\d{2})/i);
+    const match = String(rawText || "").match(/(?:date|created_at|posted)[:=\s]+(\d{4}-\d{2}-\d{2})/i);
     return match ? match[1] : "";
   }
 
@@ -175,14 +248,17 @@
   }
 
   namespace.dom = {
-    getPostListRoot,
+    getNativeRoot,
+    getGalleryRoot,
     findPostCards,
+    findAllPostCards,
     getPostLink,
     getPostUrl,
     getPostId,
     getCardImage,
     getCardText,
     getPostMeta,
+    collectAvailableTags,
     isOwnNode
   };
 })();
