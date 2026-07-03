@@ -1,0 +1,109 @@
+html.r34vf-enabled #content,
+html.r34vf-enabled #post-list,
+html.r34vf-enabled .image-list {
+  background: transparent !important;
+}
+
+html.r34vf-enabled .r34vf-post-root {
+  width: 100% !important;
+  padding: 16px !important;
+}
+
+html.r34vf-enabled .r34vf-grid-root {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+html.r34vf-enabled .r34vf-masonry-root {
+  display: block !important;
+  column-width: 230px !important;
+  column-gap: 14px !important;
+}
+
+html.r34vf-enabled .r34vf-card {
+  position: relative !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  background: var(--r34vf-surface) !important;
+  border: 1px solid var(--r34vf-border) !important;
+  border-radius: var(--r34vf-radius-md) !important;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28) !important;
+  transform: translateZ(0) !important;
+}
+
+html.r34vf-enabled .r34vf-grid-root .r34vf-card {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+html.r34vf-enabled .r34vf-masonry-root .r34vf-card {
+  display: inline-block !important;
+  width: 100% !important;
+  margin: 0 0 14px !important;
+  break-inside: avoid !important;
+  vertical-align: top !important;
+}
+
+html.r34vf-enabled .r34vf-card a {
+  display: block !important;
+  color: inherit !important;
+}
+
+html.r34vf-enabled .r34vf-card img {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  filter:
+    brightness(var(--r34vf-brightness))
+    contrast(var(--r34vf-contrast))
+    saturate(var(--r34vf-saturation))
+    grayscale(var(--r34vf-grayscale))
+    blur(var(--r34vf-blur)) !important;
+  transition: filter 140ms ease, transform 140ms ease !important;
+}
+
+html.r34vf-enabled .r34vf-grid-root .r34vf-card img {
+  aspect-ratio: 1 / 1.18 !important;
+  height: auto !important;
+  object-fit: cover !important;
+}
+
+html.r34vf-enabled.r34vf-hover-unblur .r34vf-card:hover img {
+  filter:
+    brightness(var(--r34vf-brightness))
+    contrast(var(--r34vf-contrast))
+    saturate(var(--r34vf-saturation))
+    grayscale(var(--r34vf-grayscale))
+    blur(0px) !important;
+}
+
+html.r34vf-enabled .r34vf-card:hover {
+  border-color: var(--r34vf-border-strong) !important;
+}
+
+html.r34vf-enabled .r34vf-card:hover img {
+  transform: scale(1.015) !important;
+}
+
+html.r34vf-enabled .r34vf-card-video::after {
+  content: "VIDEO" !important;
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  z-index: 3 !important;
+  padding: 4px 7px !important;
+  border-radius: 999px !important;
+  background: rgba(0, 0, 0, 0.58) !important;
+  color: white !important;
+  font: 700 10px/1 system-ui, sans-serif !important;
+  letter-spacing: 0.04em !important;
+  pointer-events: none !important;
+}
+
+.r34vf-hidden {
+  display: none !important;
+}
