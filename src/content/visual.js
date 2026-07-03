@@ -22,6 +22,10 @@
     document.documentElement.classList.add("r34vf-page-ready");
   }
 
+  function unmarkPageReady() {
+    document.documentElement.classList.remove("r34vf-page-ready");
+  }
+
   function cleanup() {
     const root = document.documentElement;
 
@@ -40,6 +44,7 @@
   namespace.visual = {
     apply,
     markPageReady,
+    unmarkPageReady,
     cleanup
   };
 })();
