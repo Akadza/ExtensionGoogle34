@@ -1,0 +1,16 @@
+.r34vf-preview-video {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  background: black !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+
+.r34vf-card-video:has(.r34vf-preview-video)::after {
+  content: "PREVIEW" !important;
+  background: rgba(6, 182, 212, 0.82) !important;
+}
