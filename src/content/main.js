@@ -67,7 +67,7 @@
       state.observer.disconnect();
     }
 
-    const target = namespace.dom.getPostListRoot();
+    const target = document.body;
     if (!target) return;
 
     state.observer = new MutationObserver((mutations) => {
@@ -121,14 +121,6 @@
     state.applying = true;
 
     try {
-      if (!state.settings.enabled) {
-        namespace.visual.cleanup();
-        namespace.layout.clear();
-        namespace.filters.clear();
-        namespace.preview.setEnabled(false);
-        return;
-      }
-
       namespace.visual.apply(state.settings);
       namespace.ui.mount(state.settings, handleShellSettingsChange);
       namespace.layout.apply(state.settings);
