@@ -54,6 +54,10 @@
           </div>
         </div>
 
+        <nav class="r34vf-nav" aria-label="Extension navigation">
+          <a href="/index.php?page=post&s=list" data-r34vf-nav="fresh">Fresh posts</a>
+        </nav>
+
         <div class="r34vf-top-controls" role="group" aria-label="Quick filters">
           ${createSegmentedControl("mediaType", [["all", "All"], ["image", "Images"], ["video", "Videos"]])}
           ${createSegmentedControl("layoutMode", [["masonry", "Masonry"], ["grid", "Grid"]])}
@@ -87,6 +91,15 @@
             </select>
           </label>
 
+          <label class="r34vf-field">
+            <span>Sort visible posts</span>
+            <select data-r34vf-setting="sortMode">
+              <option value="site">Site order</option>
+              <option value="score-desc">Votes: high to low</option>
+              <option value="score-asc">Votes: low to high</option>
+            </select>
+          </label>
+
           <label class="r34vf-check">
             <input type="checkbox" data-r34vf-setting="previewEnabled">
             <span>Hover video preview</span>
@@ -109,25 +122,12 @@
         </section>
 
         <section class="r34vf-panel">
-          <h2>Advanced filters</h2>
+          <h2>Score</h2>
           <label class="r34vf-field">
-            <span>Min score</span>
+            <span>Min votes</span>
             <input type="number" data-r34vf-setting="minScore" placeholder="10">
           </label>
-          <label class="r34vf-field r34vf-disabled-field" title="Will be enabled after metadata fetching is added.">
-            <span>Min views <em>not active yet</em></span>
-            <input type="number" data-r34vf-setting="minViews" placeholder="metadata required" disabled>
-          </label>
-          <label class="r34vf-field r34vf-disabled-field" title="Will be enabled after metadata fetching is added.">
-            <span>Date period <em>not active yet</em></span>
-            <select data-r34vf-setting="datePeriod" disabled>
-              <option value="any">Any time</option>
-              <option value="today">Today</option>
-              <option value="week">This week</option>
-              <option value="month">This month</option>
-            </select>
-          </label>
-          <p class="r34vf-help">Date/views need a metadata layer. I disabled these controls so they do not look like working filters.</p>
+          <p class="r34vf-help">Sorting applies after media/tag/blacklist/min-votes filters, so only visible cards are reordered.</p>
         </section>
       </aside>
     `;
