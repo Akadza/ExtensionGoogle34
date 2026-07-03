@@ -7,6 +7,7 @@
 
     if (!settings.filterEnabled) {
       clear(cards);
+      sortCards(gallery, cards, settings.sortMode);
       updateStats(0, cards.length);
       return {
         hidden: 0,
@@ -17,7 +18,6 @@
     const blacklist = parseBlacklist(settings.blacklistTags);
     const selectedTags = namespace.settings.normalizeTagList(settings.selectedTags);
     const minScore = normalizeOptionalNumber(settings.minScore);
-    const minViews = normalizeOptionalNumber(settings.minViews);
     let hidden = 0;
 
     for (const card of cards) {
@@ -27,9 +27,7 @@
       const shouldHide = shouldHideByMediaType(meta.mediaType, settings.mediaType)
         || doesNotMatchSelectedTags(tags, selectedTags)
         || hasBlacklistedTag(tags, blacklist)
-        || shouldHideForNumber(meta.score, minScore)
-        || shouldHideForNumber(meta.views, minViews)
-        || shouldHideForDate(meta.date, settings.datePeriod);
+        || shouldHideForNumber(meta.score, minScore);
 
       card.classList.toggle("r34vf-hidden", shouldHide);
 
@@ -38,6 +36,7 @@
       }
     }
 
+    sortCards(gallery, cards, settings.sortMode);
     updateStats(hidden, cards.length);
 
     return {
@@ -52,6 +51,52 @@
       : Array.from(document.querySelectorAll(".r34vf-hidden"));
 
     nodes.forEach((node) => node.classList.remove("r34vf-hidden"));
+  }
+
+  function sortCards(gallery, cards, sortMode) {
+    if (!gallery || sortMode === "site") {
+      restoreOriginalOrder(gallery, cards);
+      return;
+    }
+
+    const sortedCards = [...cards].sort((firstCard, secondCard) => {
+      const firstMeta = namespace.dom.getPostMeta(firstCard);
+      const secondMeta = namespace.dom.getPostMeta(secondCard);
+      const firstHidden = firstCard.classList.contains("r34vf-hidden");
+      const secondHidden = secondCard.classList.contains("r34vf-hidden");
+
+      if (firstHidden !== secondHidden) return firstHidden ? 1 : -1;
+
+      const firstScore = scoreOrFallback(firstMeta.score, sortMode);
+      const secondScore = scoreOrFallback(secondMeta.score, sortMode);
+      const scoreCompare = sortMode === "score-asc"
+        ? firstScore - secondScore
+        : secondScore - firstScore;
+
+      if (scoreCompare !== 0) return scoreCompare;
+
+      return originalIndex(firstCard) - originalIndex(secondCard);
+    });
+
+    sortedCards.forEach((card) => gallery.appendChild(card));
+  }
+
+  function restoreOriginalOrder(gallery, cards) {
+    if (!gallery) return;
+
+    [...cards]
+      .sort((firstCard, secondCard) => originalIndex(firstCard) - originalIndex(secondCard))
+      .forEach((card) => gallery.appendChild(card));
+  }
+
+  function scoreOrFallback(score, sortMode) {
+    if (score !== null && Number.isFinite(score)) return score;
+    return sortMode === "score-asc" ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+  }
+
+  function originalIndex(card) {
+    const value = Number(card.dataset.r34vfOriginalIndex);
+    return Number.isFinite(value) ? value : 0;
   }
 
   function updateStats(hidden, total) {
@@ -104,25 +149,6 @@
   function shouldHideForNumber(actualValue, minValue) {
     if (minValue === null || actualValue === null) return false;
     return actualValue < minValue;
-  }
-
-  function shouldHideForDate(dateValue, period) {
-    if (!dateValue || period === "any") return false;
-
-    const date = new Date(`${dateValue}T00:00:00`);
-    if (Number.isNaN(date.getTime())) return false;
-
-    const now = new Date();
-    const start = new Date(now);
-    start.setHours(0, 0, 0, 0);
-
-    if (period === "week") {
-      start.setDate(start.getDate() - 7);
-    } else if (period === "month") {
-      start.setMonth(start.getMonth() - 1);
-    }
-
-    return date < start;
   }
 
   function normalizeOptionalNumber(value) {
