@@ -57,29 +57,23 @@
           <option value="video">Videos</option>
         </select>
       </label>
+
+      <label class="field-row">
+        <span>Sort visible posts</span>
+        <select id="sortMode">
+          <option value="site">Site order</option>
+          <option value="score-desc">Votes: high to low</option>
+          <option value="score-asc">Votes: low to high</option>
+        </select>
+      </label>
     </section>
 
     <section class="section">
       <h2>Фильтрация</h2>
 
       <label class="field-row">
-        <span>Минимальный score</span>
+        <span>Минимум votes</span>
         <input id="minScore" type="number" placeholder="Например: 10">
-      </label>
-
-      <label class="field-row">
-        <span>Минимум просмотров</span>
-        <input id="minViews" type="number" placeholder="Если доступно в DOM">
-      </label>
-
-      <label class="field-row">
-        <span>Период загрузки</span>
-        <select id="datePeriod">
-          <option value="any">Any time</option>
-          <option value="today">Today</option>
-          <option value="week">This week</option>
-          <option value="month">This month</option>
-        </select>
       </label>
 
       <label class="field-row">
@@ -91,10 +85,6 @@
         <span>Blacklist-теги</span>
         <textarea id="blacklistTags" placeholder="Один тег на строку или через запятую&#10;tag_one&#10;tag_two&#10;prefix_*"></textarea>
       </label>
-
-      <p class="hint">
-        Фильтры по дате и просмотрам работают только если нужные данные доступны в карточках или позже будут добавлены через слой metadata-fetch.
-      </p>
     </section>
 
     <footer class="actions">
