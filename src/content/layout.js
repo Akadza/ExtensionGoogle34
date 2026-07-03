@@ -60,6 +60,9 @@
   }
 
   function prepareCard(card) {
+    preserveNativeClasses(card);
+    card.classList.remove("r34vf-card-video", "r34vf-card-image");
+
     const meta = namespace.dom.getPostMeta(card);
 
     card.classList.add("r34vf-card");
@@ -74,6 +77,18 @@
       image.loading = "lazy";
       image.decoding = "async";
     }
+  }
+
+  function preserveNativeClasses(card) {
+    if (!card.dataset.r34vfOriginalClass) {
+      card.dataset.r34vfOriginalClass = card.className || "";
+    }
+
+    card.querySelectorAll("[class]").forEach((node) => {
+      if (!node.dataset.r34vfOriginalClass) {
+        node.dataset.r34vfOriginalClass = node.className || "";
+      }
+    });
   }
 
   function stripHoverTitles(card) {
