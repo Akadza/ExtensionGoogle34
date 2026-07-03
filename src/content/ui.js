@@ -55,15 +55,8 @@
         </div>
 
         <div class="r34vf-top-controls" role="group" aria-label="Quick filters">
-          ${createSegmentedControl("mediaType", [
-            ["all", "All"],
-            ["image", "Images"],
-            ["video", "Videos"]
-          ])}
-          ${createSegmentedControl("layoutMode", [
-            ["masonry", "Masonry"],
-            ["grid", "Grid"]
-          ])}
+          ${createSegmentedControl("mediaType", [["all", "All"], ["image", "Images"], ["video", "Videos"]])}
+          ${createSegmentedControl("layoutMode", [["masonry", "Masonry"], ["grid", "Grid"]])}
         </div>
       </div>
 
@@ -121,20 +114,20 @@
             <span>Min score</span>
             <input type="number" data-r34vf-setting="minScore" placeholder="10">
           </label>
-          <label class="r34vf-field r34vf-disabled-field" title="Works only when this metadata is available in loaded cards or fetched metadata.">
-            <span>Min views <em>prepared</em></span>
-            <input type="number" data-r34vf-setting="minViews" placeholder="not always available">
+          <label class="r34vf-field r34vf-disabled-field" title="Will be enabled after metadata fetching is added.">
+            <span>Min views <em>not active yet</em></span>
+            <input type="number" data-r34vf-setting="minViews" placeholder="metadata required" disabled>
           </label>
-          <label class="r34vf-field r34vf-disabled-field" title="Needs post dates in DOM or a metadata fetch layer.">
-            <span>Date period <em>prepared</em></span>
-            <select data-r34vf-setting="datePeriod">
+          <label class="r34vf-field r34vf-disabled-field" title="Will be enabled after metadata fetching is added.">
+            <span>Date period <em>not active yet</em></span>
+            <select data-r34vf-setting="datePeriod" disabled>
               <option value="any">Any time</option>
               <option value="today">Today</option>
               <option value="week">This week</option>
               <option value="month">This month</option>
             </select>
           </label>
-          <p class="r34vf-help">Date/views filters need metadata from loaded cards or a later metadata-fetch layer.</p>
+          <p class="r34vf-help">Date/views need a metadata layer. I disabled these controls so they do not look like working filters.</p>
         </section>
       </aside>
     `;
@@ -196,7 +189,7 @@
 
   function handleControlChange(event) {
     const control = event.target.closest(CONTROL_SELECTOR);
-    if (!control) return;
+    if (!control || control.disabled) return;
 
     const key = control.dataset.r34vfSetting;
     const value = readControlValue(control);
@@ -229,17 +222,13 @@
     renderSelectedTags(shell, nextSettings.selectedTags);
     renderTagSuggestions(shell, state.tagQuery);
 
-    if (typeof state.onChange === "function") {
-      state.onChange(nextSettings);
-    }
+    if (typeof state.onChange === "function") state.onChange(nextSettings);
 
     scheduleSave(nextSettings);
   }
 
   function scheduleSave(settings) {
-    if (state.saveTimerId !== null) {
-      window.clearTimeout(state.saveTimerId);
-    }
+    if (state.saveTimerId !== null) window.clearTimeout(state.saveTimerId);
 
     state.saveTimerId = window.setTimeout(() => {
       namespace.settings.saveSettings(settings);
@@ -263,17 +252,12 @@
       const key = control.dataset.r34vfSetting;
       const value = settings[key];
 
-      if (control.type === "checkbox") {
-        control.checked = Boolean(value);
-      } else {
-        control.value = value ?? "";
-      }
+      if (control.type === "checkbox") control.checked = Boolean(value);
+      else control.value = value ?? "";
     });
 
     const tagInput = shell.querySelector("[data-r34vf-action='tag-search']");
-    if (tagInput && document.activeElement !== tagInput) {
-      tagInput.value = state.tagQuery;
-    }
+    if (tagInput && document.activeElement !== tagInput) tagInput.value = state.tagQuery;
 
     shell.querySelectorAll("[data-r34vf-segment]").forEach((button) => {
       const key = button.dataset.r34vfSegment;
