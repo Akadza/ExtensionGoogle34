@@ -25,9 +25,7 @@
 
     for (const selector of POST_CARD_SELECTORS) {
       root.querySelectorAll(selector).forEach((node) => {
-        if (isPostCard(node)) {
-          result.add(node);
-        }
+        if (isPostCard(node)) result.add(node);
       });
     }
 
@@ -42,10 +40,7 @@
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
     if (node.closest?.("#r34vf-shell")) return false;
 
-    const hasImage = Boolean(node.querySelector("img"));
-    const hasPostLink = Boolean(getPostLink(node));
-
-    return hasImage && hasPostLink;
+    return Boolean(node.querySelector("img")) && Boolean(getPostLink(node));
   }
 
   function getPostLink(card) {
@@ -89,6 +84,7 @@
 
     const parts = [
       card.className,
+      card.dataset?.r34vfOriginalTitle,
       card.getAttribute("title"),
       card.getAttribute("alt"),
       card.getAttribute("data-tags"),
@@ -96,12 +92,14 @@
       card.getAttribute("data-rating"),
       card.textContent,
       img?.className,
+      img?.dataset?.r34vfOriginalTitle,
       img?.getAttribute("title"),
       img?.getAttribute("alt"),
       img?.getAttribute("data-tags"),
       img?.getAttribute("data-score"),
       img?.dataset?.tags,
       ...links.map((link) => link.className),
+      ...links.map((link) => link.dataset?.r34vfOriginalTitle),
       ...links.map((link) => link.getAttribute("title")),
       ...links.map((link) => link.getAttribute("href"))
     ];
@@ -136,24 +134,24 @@
       image?.dataset?.src,
       image?.getAttribute("data-original"),
       image?.getAttribute("alt"),
+      image?.dataset?.r34vfOriginalTitle,
       image?.getAttribute("title")
     ].filter(Boolean).join(" ").toLowerCase();
 
     const hasVideoClass = card.matches(".video, .webm, .mp4, [class*='video']")
       || Boolean(card.querySelector(".video, .webm, .mp4, video, [class*='video']"));
-
-    const hasVideoText = /\b(video|webm|mp4|duration|animated|animated_gif)\b/i.test(rawText)
-      || /\b\d{1,2}:\d{2}\b/.test(rawText);
+    const hasDuration = /\b\d{1,2}:\d{2}\b/.test(rawText);
+    const hasVideoText = /\b(video|webm|mp4|duration|animated|animated_gif)\b/i.test(rawText);
     const hasVideoUrl = /\.(webm|mp4)(?:$|[?#])/i.test(lowerUrl) || /\.(webm|mp4)(?:$|[?#])/i.test(imageText);
 
-    return hasVideoClass || hasVideoText || hasVideoUrl ? "video" : "image";
+    return hasVideoClass || hasDuration || hasVideoText || hasVideoUrl ? "video" : "image";
   }
 
   function extractTags(rawText) {
     return String(rawText || "")
       .replace(/%20/g, " ")
       .replace(/\+/g, " ")
-      .replace(/[()[\]{}"'.,;:!?<>]/g, " ")
+      .replace(/[()[\]{}"'.,;!?<>]/g, " ")
       .split(/\s+/)
       .map((tag) => tag.trim().toLowerCase().replace(/^tag:/, ""))
       .filter(Boolean);
@@ -165,15 +163,14 @@
 
     document.querySelectorAll("a[href*='tags='], a[href*='tag='], a[href*='page=post']").forEach((link) => {
       const linkText = String(link.textContent || "").trim();
-      const title = String(link.getAttribute("title") || "").trim();
+      const title = String(link.getAttribute("title") || link.dataset?.r34vfOriginalTitle || "").trim();
       const hrefTags = extractTagsFromUrl(link.getAttribute("href") || "");
 
       [...hrefTags, linkText, title].forEach((value) => addTag(tags, value));
     });
 
     findAllPostCards().forEach((card) => {
-      const meta = getPostMeta(card);
-      meta.tags.forEach((tag) => addTag(tags, tag));
+      getPostMeta(card).tags.forEach((tag) => addTag(tags, tag));
     });
 
     return Array.from(tags.keys())
@@ -192,7 +189,7 @@
       .replace(/[^a-z0-9_:\-]+/g, "");
 
     if (!tag || tag.length < 2 || tag.length > 64) return;
-    if (["page", "post", "index", "id", "tags", "score", "rating"].includes(tag)) return;
+    if (["page", "post", "index", "id", "tags", "score", "rating", "artist", "copyright", "character", "general"].includes(tag)) return;
 
     map.set(tag, true);
   }
@@ -208,19 +205,11 @@
   }
 
   function extractScore(rawText) {
-    return extractNumber(rawText, [
-      /score[:=\s]+(-?\d+)/i,
-      /score%3a(-?\d+)/i,
-      /score=(-?\d+)/i
-    ]);
+    return extractNumber(rawText, [/score[:=\s]+(-?\d+)/i, /score%3a(-?\d+)/i, /score=(-?\d+)/i]);
   }
 
   function extractViews(rawText) {
-    return extractNumber(rawText, [
-      /views?[:=\s]+(\d+)/i,
-      /view_count[:=\s]+(\d+)/i,
-      /views?=(\d+)/i
-    ]);
+    return extractNumber(rawText, [/views?[:=\s]+(\d+)/i, /view_count[:=\s]+(\d+)/i, /views?=(\d+)/i]);
   }
 
   function extractDate(rawText) {
@@ -234,7 +223,6 @@
     for (const pattern of patterns) {
       const match = decodedText.match(pattern);
       if (!match) continue;
-
       const value = Number(match[1]);
       if (Number.isFinite(value)) return value;
     }
