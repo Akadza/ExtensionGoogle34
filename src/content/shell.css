@@ -6,7 +6,6 @@ html.r34vf-enabled body {
 
 html.r34vf-shell-enabled body {
   padding-top: var(--r34vf-topbar-height) !important;
-  padding-left: var(--r34vf-sidebar-width) !important;
 }
 
 #r34vf-shell,
@@ -26,7 +25,7 @@ html.r34vf-shell-enabled body {
   align-items: center !important;
   justify-content: space-between !important;
   gap: 18px !important;
-  padding: 0 16px !important;
+  padding: 0 18px !important;
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.98), rgba(6, 182, 212, 0.92)) !important;
   color: white !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
@@ -37,7 +36,7 @@ html.r34vf-shell-enabled body {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  min-width: 230px !important;
+  min-width: 250px !important;
 }
 
 .r34vf-brand strong,
@@ -46,23 +45,23 @@ html.r34vf-shell-enabled body {
 }
 
 .r34vf-brand strong {
-  font-size: 16px !important;
+  font-size: 17px !important;
   letter-spacing: 0.01em !important;
 }
 
 .r34vf-brand span {
-  margin-top: 1px !important;
+  margin-top: 2px !important;
   color: rgba(255, 255, 255, 0.72) !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
 }
 
 .r34vf-icon-button {
-  width: 36px !important;
-  height: 36px !important;
+  width: 38px !important;
+  height: 38px !important;
   display: inline-grid !important;
   place-items: center !important;
   border: 0 !important;
-  border-radius: 12px !important;
+  border-radius: 13px !important;
   background: rgba(255, 255, 255, 0.16) !important;
   color: white !important;
   cursor: pointer !important;
@@ -86,14 +85,14 @@ html.r34vf-shell-enabled body {
 }
 
 .r34vf-segmented button {
-  min-height: 30px !important;
-  padding: 0 12px !important;
+  min-height: 32px !important;
+  padding: 0 13px !important;
   border: 0 !important;
   border-radius: 999px !important;
   background: transparent !important;
   color: rgba(255, 255, 255, 0.82) !important;
   font-weight: 700 !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   cursor: pointer !important;
 }
 
@@ -119,10 +118,6 @@ html.r34vf-shell-enabled body {
   transform: translateX(calc(-1 * var(--r34vf-sidebar-width))) !important;
 }
 
-html:has(#r34vf-shell.r34vf-sidebar-collapsed).r34vf-shell-enabled body {
-  padding-left: 0 !important;
-}
-
 .r34vf-panel {
   padding: 16px !important;
   margin-bottom: 12px !important;
@@ -142,7 +137,7 @@ html:has(#r34vf-shell.r34vf-sidebar-collapsed).r34vf-shell-enabled body {
 .r34vf-panel h2 {
   margin: 0 0 12px !important;
   color: var(--r34vf-text) !important;
-  font-size: 14px !important;
+  font-size: 15px !important;
   letter-spacing: 0.02em !important;
 }
 
@@ -151,14 +146,14 @@ html:has(#r34vf-shell.r34vf-sidebar-collapsed).r34vf-shell-enabled body {
   display: block !important;
   margin: 12px 0 !important;
   color: var(--r34vf-muted) !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
 }
 
 .r34vf-field span {
   display: flex !important;
   justify-content: space-between !important;
   gap: 10px !important;
-  margin-bottom: 6px !important;
+  margin-bottom: 7px !important;
 }
 
 .r34vf-field em {
@@ -170,13 +165,14 @@ html:has(#r34vf-shell.r34vf-sidebar-collapsed).r34vf-shell-enabled body {
 .r34vf-field select,
 .r34vf-field textarea {
   width: 100% !important;
-  min-height: 38px !important;
-  padding: 9px 10px !important;
+  min-height: 40px !important;
+  padding: 10px 11px !important;
   background: var(--r34vf-surface) !important;
   color: var(--r34vf-text) !important;
   border: 1px solid var(--r34vf-border) !important;
   border-radius: var(--r34vf-radius-sm) !important;
   outline: none !important;
+  font-size: 13px !important;
 }
 
 .r34vf-field textarea {
@@ -230,8 +226,8 @@ html:has(#r34vf-shell.r34vf-sidebar-collapsed).r34vf-shell-enabled body {
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
-  min-height: 28px !important;
-  padding: 0 9px !important;
+  min-height: 29px !important;
+  padding: 0 10px !important;
   border: 1px solid var(--r34vf-border) !important;
   border-radius: 999px !important;
   background: var(--r34vf-surface-2) !important;
@@ -254,10 +250,6 @@ html:has(#r34vf-shell.r34vf-sidebar-collapsed).r34vf-shell-enabled body {
 }
 
 @media (max-width: 980px) {
-  html.r34vf-shell-enabled body {
-    padding-left: 0 !important;
-  }
-
   .r34vf-sidebar {
     transform: translateX(calc(-1 * var(--r34vf-sidebar-width))) !important;
   }
