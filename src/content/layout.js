@@ -16,6 +16,10 @@
 
     cards.forEach((card) => {
       if (card.parentElement !== gallery) {
+        if (!card.dataset.r34vfOriginalIndex) {
+          card.dataset.r34vfOriginalIndex = String(gallery.children.length);
+        }
+
         gallery.appendChild(card);
       }
 
