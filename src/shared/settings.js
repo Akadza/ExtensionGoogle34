@@ -2,48 +2,23 @@
   const namespace = window.R34VF || (window.R34VF = {});
 
   const DEFAULT_SETTINGS = Object.freeze({
-    enabled: true,
     showShell: true,
     sidebarCollapsed: false,
-
+    filterEnabled: true,
     layoutMode: "masonry",
     mediaType: "all",
     previewEnabled: true,
-
-    hoverUnblur: true,
-    brightness: 1,
-    contrast: 1.04,
-    saturation: 1,
-    grayscale: 0,
-    blur: 0,
-
     blacklistTags: "",
+    selectedTags: [],
     minScore: "",
     datePeriod: "any",
     minViews: "",
     sortMode: "site"
   });
 
-  const NUMERIC_KEYS = new Set([
-    "brightness",
-    "contrast",
-    "saturation",
-    "grayscale",
-    "blur"
-  ]);
-
-  const OPTIONAL_NUMBER_KEYS = new Set([
-    "minScore",
-    "minViews"
-  ]);
-
-  const BOOLEAN_KEYS = new Set([
-    "enabled",
-    "showShell",
-    "sidebarCollapsed",
-    "previewEnabled",
-    "hoverUnblur"
-  ]);
+  const OPTIONAL_NUMBER_KEYS = new Set(["minScore", "minViews"]);
+  const BOOLEAN_KEYS = new Set(["showShell", "sidebarCollapsed", "filterEnabled", "previewEnabled"]);
+  const ARRAY_KEYS = new Set(["selectedTags"]);
 
   const ENUM_VALUES = Object.freeze({
     layoutMode: new Set(["grid", "masonry"]),
@@ -55,13 +30,9 @@
   function normalizeSettings(rawSettings = {}) {
     const merged = {
       ...DEFAULT_SETTINGS,
-      ...rawSettings
+      ...rawSettings,
+      filterEnabled: typeof rawSettings.filterEnabled === "undefined" ? true : rawSettings.filterEnabled
     };
-
-    for (const key of NUMERIC_KEYS) {
-      const value = Number(merged[key]);
-      merged[key] = Number.isFinite(value) ? value : DEFAULT_SETTINGS[key];
-    }
 
     for (const key of OPTIONAL_NUMBER_KEYS) {
       if (merged[key] === null || merged[key] === undefined || merged[key] === "") {
@@ -76,6 +47,10 @@
       merged[key] = Boolean(merged[key]);
     }
 
+    for (const key of ARRAY_KEYS) {
+      merged[key] = normalizeTagList(merged[key]);
+    }
+
     for (const [key, allowedValues] of Object.entries(ENUM_VALUES)) {
       if (!allowedValues.has(merged[key])) {
         merged[key] = DEFAULT_SETTINGS[key];
@@ -85,6 +60,14 @@
     merged.blacklistTags = String(merged.blacklistTags || "");
 
     return merged;
+  }
+
+  function normalizeTagList(value) {
+    const source = Array.isArray(value) ? value : String(value || "").split(/[,\n]+/);
+
+    return Array.from(new Set(source
+      .map((tag) => String(tag || "").trim().toLowerCase())
+      .filter(Boolean)));
   }
 
   function loadSettings() {
@@ -105,6 +88,7 @@
     DEFAULT_SETTINGS,
     normalizeSettings,
     loadSettings,
-    saveSettings
+    saveSettings,
+    normalizeTagList
   };
 })();
