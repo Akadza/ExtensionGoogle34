@@ -7,20 +7,23 @@
   const state = {
     settings: null,
     onChange: null,
-    saveTimerId: null
+    saveTimerId: null,
+    tagQuery: ""
   };
 
   function mount(settings, onChange) {
     state.settings = settings;
     state.onChange = onChange;
 
-    if (!settings.enabled || !settings.showShell) {
+    if (!settings.showShell) {
       unmount();
       return;
     }
 
     const shell = ensureShell();
     syncControls(shell, settings);
+    renderSelectedTags(shell, settings.selectedTags);
+    renderTagSuggestions(shell, state.tagQuery);
   }
 
   function unmount() {
@@ -69,7 +72,7 @@
           <div class="r34vf-panel-title">
             <h2>Filters</h2>
             <label class="r34vf-switch">
-              <input type="checkbox" data-r34vf-setting="enabled">
+              <input type="checkbox" data-r34vf-setting="filterEnabled">
               <span></span>
             </label>
           </div>
@@ -91,25 +94,20 @@
             </select>
           </label>
 
-          <div class="r34vf-row">
-            <label class="r34vf-check">
-              <input type="checkbox" data-r34vf-setting="previewEnabled">
-              <span>Hover video preview</span>
-            </label>
-          </div>
+          <label class="r34vf-check">
+            <input type="checkbox" data-r34vf-setting="previewEnabled">
+            <span>Hover video preview</span>
+          </label>
         </section>
 
         <section class="r34vf-panel">
-          <h2>Image tuning</h2>
-          ${createRange("brightness", "Brightness", 0.3, 1.8, 0.05)}
-          ${createRange("contrast", "Contrast", 0.3, 2, 0.05)}
-          ${createRange("saturation", "Saturation", 0, 2, 0.05)}
-          ${createRange("grayscale", "Grayscale", 0, 1, 0.05)}
-          ${createRange("blur", "Blur", 0, 20, 1)}
-          <label class="r34vf-check">
-            <input type="checkbox" data-r34vf-setting="hoverUnblur">
-            <span>Remove blur on hover</span>
+          <h2>Tag search</h2>
+          <label class="r34vf-field">
+            <span>Find tag</span>
+            <input type="search" data-r34vf-action="tag-search" placeholder="type tag name">
           </label>
+          <div class="r34vf-tag-suggestions" data-r34vf-tag-suggestions></div>
+          <div class="r34vf-tag-chips" data-r34vf-selected-tags></div>
         </section>
 
         <section class="r34vf-panel">
@@ -118,7 +116,7 @@
             <span>Min score</span>
             <input type="number" data-r34vf-setting="minScore" placeholder="10">
           </label>
-          <label class="r34vf-field r34vf-disabled-field" title="Works only when this metadata is available in the loaded cards or fetched data.">
+          <label class="r34vf-field r34vf-disabled-field" title="Works only when this metadata is available in loaded cards or fetched metadata.">
             <span>Min views <em>prepared</em></span>
             <input type="number" data-r34vf-setting="minViews" placeholder="not always available">
           </label>
@@ -135,6 +133,7 @@
             <span>Blacklist tags</span>
             <textarea data-r34vf-setting="blacklistTags" placeholder="tag_one&#10;tag_two&#10;prefix_*"></textarea>
           </label>
+          <p class="r34vf-help">Filters affect only loaded cards. More exact date/views filters need metadata fetching.</p>
         </section>
       </aside>
     `;
@@ -148,19 +147,21 @@
     return `<div class="r34vf-segmented" data-r34vf-segment-group="${settingName}">${buttons}</div>`;
   }
 
-  function createRange(id, label, min, max, step) {
-    return `
-      <label class="r34vf-range">
-        <span>${label} <output data-r34vf-output="${id}"></output></span>
-        <input type="range" min="${min}" max="${max}" step="${step}" data-r34vf-setting="${id}">
-      </label>
-    `;
-  }
-
   function bindShell(shell) {
-    shell.addEventListener("input", handleControlChange);
+    shell.addEventListener("input", handleInput);
     shell.addEventListener("change", handleControlChange);
     shell.addEventListener("click", handleClick);
+  }
+
+  function handleInput(event) {
+    const tagInput = event.target.closest("[data-r34vf-action='tag-search']");
+    if (tagInput) {
+      state.tagQuery = tagInput.value;
+      renderTagSuggestions(document.getElementById(SHELL_ID), state.tagQuery);
+      return;
+    }
+
+    handleControlChange(event);
   }
 
   function handleClick(event) {
@@ -173,6 +174,18 @@
     const segmentButton = event.target.closest("[data-r34vf-segment]");
     if (segmentButton) {
       updateSetting(segmentButton.dataset.r34vfSegment, segmentButton.dataset.r34vfValue);
+      return;
+    }
+
+    const suggestionButton = event.target.closest("[data-r34vf-add-tag]");
+    if (suggestionButton) {
+      addSelectedTag(suggestionButton.dataset.r34vfAddTag);
+      return;
+    }
+
+    const removeButton = event.target.closest("[data-r34vf-remove-tag]");
+    if (removeButton) {
+      removeSelectedTag(removeButton.dataset.r34vfRemoveTag);
     }
   }
 
@@ -185,6 +198,20 @@
     updateSetting(key, value);
   }
 
+  function addSelectedTag(tag) {
+    const selectedTags = namespace.settings.normalizeTagList([
+      ...state.settings.selectedTags,
+      tag
+    ]);
+
+    updateSetting("selectedTags", selectedTags);
+  }
+
+  function removeSelectedTag(tag) {
+    const selectedTags = state.settings.selectedTags.filter((item) => item !== tag);
+    updateSetting("selectedTags", selectedTags);
+  }
+
   function updateSetting(key, value) {
     const nextSettings = namespace.settings.normalizeSettings({
       ...state.settings,
@@ -193,6 +220,8 @@
 
     state.settings = nextSettings;
     syncControls(document.getElementById(SHELL_ID), nextSettings);
+    renderSelectedTags(document.getElementById(SHELL_ID), nextSettings.selectedTags);
+    renderTagSuggestions(document.getElementById(SHELL_ID), state.tagQuery);
 
     if (typeof state.onChange === "function") {
       state.onChange(nextSettings);
@@ -222,6 +251,7 @@
     if (!shell) return;
 
     shell.classList.toggle("r34vf-sidebar-collapsed", settings.sidebarCollapsed);
+    shell.classList.toggle("r34vf-filters-off", !settings.filterEnabled);
 
     shell.querySelectorAll(CONTROL_SELECTOR).forEach((control) => {
       const key = control.dataset.r34vfSetting;
@@ -234,15 +264,62 @@
       }
     });
 
-    shell.querySelectorAll("[data-r34vf-output]").forEach((output) => {
-      const key = output.dataset.r34vfOutput;
-      output.textContent = String(settings[key] ?? "");
-    });
-
     shell.querySelectorAll("[data-r34vf-segment]").forEach((button) => {
       const key = button.dataset.r34vfSegment;
       button.classList.toggle("is-active", settings[key] === button.dataset.r34vfValue);
     });
+  }
+
+  function renderSelectedTags(shell, selectedTags) {
+    const target = shell?.querySelector("[data-r34vf-selected-tags]");
+    if (!target) return;
+
+    if (!selectedTags.length) {
+      target.innerHTML = `<span class="r34vf-empty">No selected tags</span>`;
+      return;
+    }
+
+    target.innerHTML = selectedTags.map((tag) => `
+      <button type="button" class="r34vf-chip" data-r34vf-remove-tag="${escapeAttribute(tag)}">
+        ${escapeHtml(tag)} <span>×</span>
+      </button>
+    `).join("");
+  }
+
+  function renderTagSuggestions(shell, query) {
+    const target = shell?.querySelector("[data-r34vf-tag-suggestions]");
+    if (!target) return;
+
+    const suggestions = namespace.dom.collectAvailableTags(query)
+      .filter((tag) => !state.settings.selectedTags.includes(tag))
+      .slice(0, 10);
+
+    if (!query.trim()) {
+      target.innerHTML = `<span class="r34vf-empty">Start typing to search tags</span>`;
+      return;
+    }
+
+    if (!suggestions.length) {
+      target.innerHTML = `<span class="r34vf-empty">No matches</span>`;
+      return;
+    }
+
+    target.innerHTML = suggestions.map((tag) => `
+      <button type="button" class="r34vf-suggestion" data-r34vf-add-tag="${escapeAttribute(tag)}">${escapeHtml(tag)}</button>
+    `).join("");
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value);
   }
 
   namespace.ui = {
