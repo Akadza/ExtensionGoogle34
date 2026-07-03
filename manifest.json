@@ -30,7 +30,7 @@
         "src/content/preview.js",
         "src/content/main.js"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ],
   "options_page": "src/options/options.html",
