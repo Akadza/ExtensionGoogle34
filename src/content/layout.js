@@ -9,6 +9,11 @@
     const gallery = ensureGallery(page);
     const cards = namespace.dom.findAllPostCards();
 
+    if (cards.length === 0 && gallery.children.length === 0) {
+      namespace.visual.unmarkPageReady();
+      return;
+    }
+
     cards.forEach((card) => {
       if (card.parentElement !== gallery) {
         gallery.appendChild(card);
@@ -21,7 +26,9 @@
     gallery.classList.toggle("r34vf-grid-root", settings.layoutMode === "grid");
     gallery.classList.toggle("r34vf-masonry-root", settings.layoutMode === "masonry");
 
-    namespace.visual.markPageReady();
+    if (gallery.children.length > 0) {
+      namespace.visual.markPageReady();
+    }
   }
 
   function ensurePage() {
@@ -92,6 +99,7 @@
     });
 
     page?.remove();
+    namespace.visual.unmarkPageReady();
   }
 
   namespace.layout = {
