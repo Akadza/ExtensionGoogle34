@@ -3,18 +3,25 @@
 
   const DEFAULT_SETTINGS = Object.freeze({
     enabled: true,
-    compact: true,
-    hoverUnblur: true,
-    showBadge: true,
+    showShell: true,
+    sidebarCollapsed: false,
 
+    layoutMode: "masonry",
+    mediaType: "all",
+    previewEnabled: true,
+
+    hoverUnblur: true,
     brightness: 1,
-    contrast: 1.05,
-    saturation: 0.95,
+    contrast: 1.04,
+    saturation: 1,
     grayscale: 0,
     blur: 0,
 
     blacklistTags: "",
-    minScore: ""
+    minScore: "",
+    datePeriod: "any",
+    minViews: "",
+    sortMode: "site"
   });
 
   const NUMERIC_KEYS = new Set([
@@ -25,12 +32,25 @@
     "blur"
   ]);
 
+  const OPTIONAL_NUMBER_KEYS = new Set([
+    "minScore",
+    "minViews"
+  ]);
+
   const BOOLEAN_KEYS = new Set([
     "enabled",
-    "compact",
-    "hoverUnblur",
-    "showBadge"
+    "showShell",
+    "sidebarCollapsed",
+    "previewEnabled",
+    "hoverUnblur"
   ]);
+
+  const ENUM_VALUES = Object.freeze({
+    layoutMode: new Set(["grid", "masonry"]),
+    mediaType: new Set(["all", "image", "video"]),
+    datePeriod: new Set(["any", "today", "week", "month"]),
+    sortMode: new Set(["site", "score-desc", "score-asc"])
+  });
 
   function normalizeSettings(rawSettings = {}) {
     const merged = {
@@ -43,18 +63,26 @@
       merged[key] = Number.isFinite(value) ? value : DEFAULT_SETTINGS[key];
     }
 
+    for (const key of OPTIONAL_NUMBER_KEYS) {
+      if (merged[key] === null || merged[key] === undefined || merged[key] === "") {
+        merged[key] = "";
+      } else {
+        const value = Number(merged[key]);
+        merged[key] = Number.isFinite(value) ? value : "";
+      }
+    }
+
     for (const key of BOOLEAN_KEYS) {
       merged[key] = Boolean(merged[key]);
     }
 
-    merged.blacklistTags = String(merged.blacklistTags || "");
-
-    if (merged.minScore === null || merged.minScore === undefined || merged.minScore === "") {
-      merged.minScore = "";
-    } else {
-      const value = Number(merged.minScore);
-      merged.minScore = Number.isFinite(value) ? value : "";
+    for (const [key, allowedValues] of Object.entries(ENUM_VALUES)) {
+      if (!allowedValues.has(merged[key])) {
+        merged[key] = DEFAULT_SETTINGS[key];
+      }
     }
+
+    merged.blacklistTags = String(merged.blacklistTags || "");
 
     return merged;
   }
