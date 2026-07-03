@@ -1,8 +1,9 @@
 (() => {
   const namespace = window.R34VF || (window.R34VF = {});
 
-  const HOVER_DELAY_MS = 320;
-  const SEEK_INTERVAL_MS = 2200;
+  const HOVER_DELAY_MS = 650;
+  const SEEK_INTERVAL_MS = 2600;
+  const FETCH_TIMEOUT_MS = 4500;
   const CACHE_LIMIT = 80;
 
   const state = {
@@ -66,10 +67,12 @@
     if (meta.mediaType !== "video" || !meta.url) return;
 
     const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     state.activeController = controller;
 
     try {
-      const videoUrl = await resolveVideoUrl(meta.url, controller.signal);
+      const directUrl = getDirectVideoUrl(meta);
+      const videoUrl = directUrl || await resolveVideoUrl(meta.url, controller.signal);
       if (!videoUrl || controller.signal.aborted || state.activeCard !== card) return;
 
       renderVideo(card, videoUrl);
@@ -77,7 +80,21 @@
       if (error?.name !== "AbortError") {
         console.debug("R34VF preview failed", error);
       }
+    } finally {
+      window.clearTimeout(timeoutId);
     }
+  }
+
+  function getDirectVideoUrl(meta) {
+    const candidates = [meta.url, meta.imageUrl];
+
+    for (const candidate of candidates) {
+      if (/\.(webm|mp4)(?:$|[?#])/i.test(candidate || "")) {
+        return candidate;
+      }
+    }
+
+    return "";
   }
 
   async function resolveVideoUrl(postUrl, signal) {
@@ -105,6 +122,7 @@
 
   function extractVideoSource(doc, baseUrl) {
     const selectors = [
+      "video source[label*='sample'][src]",
       "video source[src]",
       "video[src]",
       "source[type^='video/'][src]",
@@ -159,7 +177,7 @@
         return;
       }
 
-      cursor += Math.max(2, duration * 0.16);
+      cursor += Math.max(2, duration * 0.18);
       if (cursor >= duration - 1) cursor = duration * 0.08;
       video.currentTime = Math.min(cursor, duration - 1);
     }, SEEK_INTERVAL_MS);
